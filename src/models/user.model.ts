@@ -36,7 +36,7 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-// hashing the password
+// Hash the user's password before saving the document to the database
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
@@ -47,14 +47,14 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// comparing password between given and stored
-//injecting custom methods
+// Compare the provided password with the stored hashed password
+// Custom method to compare passwords
 
 userSchema.methods.isPasswordCorrect = async function (password: string) {
   return await bcrypt.compare(password, this.password);
 };
 
-// generating access and refresh token with injecting custom methods.
+// // Custom method to generate a JWT access & refresh token for user authentication
 
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
