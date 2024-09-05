@@ -10,15 +10,6 @@ export type UserType = {
 
 const userSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
     firstName: {
       type: String,
       required: true,
@@ -26,6 +17,18 @@ const userSchema = new Schema(
     lastName: {
       type: String,
       required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Password Is Required"],
+    },
+    refreshToken: {
+      type: String,
     },
   },
   { timestamps: true }
