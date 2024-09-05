@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "json-web-token";
 
 export type UserType = {
   _id: string;
@@ -33,5 +35,16 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// hashing the password
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  } else {
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+  }
+});
 
 export const User = mongoose.model<UserType>("User", userSchema);
