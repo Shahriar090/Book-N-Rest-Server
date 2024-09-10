@@ -1,8 +1,51 @@
+import { User } from "../models/user.model";
+import { ApiError } from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
 const registerUser = asyncHandler(async (req, res) => {
-  res.status(200).json(new ApiResponse(200, {}, "User Registered Successful"));
+  const { firstName, lastName, email, password } = req.body;
+  //   fields validation
+  if (
+    [firstName, lastName, email, password].some(
+      (field) => !field || field?.trim() === ""
+    )
+  ) {
+    throw new ApiError(400, "All Fields Are Required");
+  }
+
+  //  checking if the user already exists or not
+
+  const isUserExist = await User.findOne({ email });
+
+  if (isUserExist) {
+    throw new ApiError(409, "This User Already Exist");
+  }
+
+  //   creating new user
+
+  const user = await User.create({
+    firstName,
+    lastName,
+    email,
+    password,
+  });
+
+  //   removing password and refresh token from newly created user's information
+
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  if (!createdUser) {
+    throw new ApiError(500, "Something Went Wrong While Creating This User");
+  }
+
+  // sending response
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, createdUser, "User Created Successfully"));
 });
 
 export { registerUser };
