@@ -13,6 +13,7 @@ const generateAccessAndRefreshToken = async (userId: string) => {
     }
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
+    // saving refresh token to DB
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
@@ -24,7 +25,7 @@ const generateAccessAndRefreshToken = async (userId: string) => {
   }
 };
 
-// User registration
+// User registration------------------------------------------------
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
@@ -71,7 +72,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, createdUser, "User Created Successfully"));
 });
 
-// User login
+// User login--------------------------------------------------------
 
 const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -89,9 +90,9 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // checking the password
-  const isPasswordCorrect = await user.isPasswordCorrect(password);
+  const isPasswordValid = await user.isPasswordCorrect(password);
 
-  if (!isPasswordCorrect) {
+  if (!isPasswordValid) {
     throw new ApiError(401, "Invalid User Credentials");
   }
 
