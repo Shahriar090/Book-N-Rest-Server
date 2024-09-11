@@ -4,6 +4,26 @@ import { ApiError } from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
+// access and refresh token generating method
+const generateAccessAndRefreshToken = async (userId: string) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "User Not Found");
+    }
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something Went Wrong While Generating Access And Refresh Token"
+    );
+  }
+};
+
 // User registration
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
@@ -74,6 +94,30 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid User Credentials");
   }
+
+  // generating access and refresh token
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+  // removing password and refresh token before sending response
+  const loggedInUser = await User.findById(user._id).select(
+    "-refreshToken -password"
+  );
+
+  const options = { httpOnly: true, secure: true };
+
+  // sending the access and refresh token with the response due to some additional considerations, such as the ability to store them in local storage.
+  res
+    .status(200)
+    .cookie("access-token", accessToken, options)
+    .cookie("refresh-token", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User Login Successful"
+      )
+    );
 });
 
 export { registerUser, loginUser };

@@ -9,6 +9,9 @@ export type UserType = {
   firstName: string;
   lastName: string;
   isPasswordCorrect(password: string): Promise<boolean>;
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
+  refreshToken: string;
 };
 
 const userSchema = new Schema(
