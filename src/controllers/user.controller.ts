@@ -1,9 +1,12 @@
+import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const registerUser = asyncHandler(async (req, res) => {
+// User registration
+
+const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
   //   fields validation
   if (
@@ -48,4 +51,8 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, createdUser, "User Created Successfully"));
 });
 
-export { registerUser };
+// User login
+
+const loginUser = asyncHandler(async (req: Request, res: Response) => {});
+
+export { registerUser, loginUser };
