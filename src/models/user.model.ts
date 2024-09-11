@@ -8,6 +8,7 @@ export type UserType = {
   password: string;
   firstName: string;
   lastName: string;
+  isPasswordCorrect(password: string): Promise<boolean>;
 };
 
 const userSchema = new Schema(

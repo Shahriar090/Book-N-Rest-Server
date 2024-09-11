@@ -53,6 +53,27 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
 // User login
 
-const loginUser = asyncHandler(async (req: Request, res: Response) => {});
+const loginUser = asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  // validation
+  if (!email && !password) {
+    throw new ApiError(400, "Email And Password Are Required");
+  }
+
+  // find the user
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(401, "User Does Not Exist");
+  }
+
+  // checking the password
+  const isPasswordCorrect = await user.isPasswordCorrect(password);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Invalid User Credentials");
+  }
+});
 
 export { registerUser, loginUser };
