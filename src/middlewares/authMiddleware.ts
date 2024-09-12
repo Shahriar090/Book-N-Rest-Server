@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { ApiError } from "../utils/apiError";
 import { User, UserType } from "../models/user.model";
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: UserType;
 }
 

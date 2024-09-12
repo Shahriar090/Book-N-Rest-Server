@@ -3,6 +3,7 @@ import { User } from "../models/user.model";
 import { ApiError } from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AuthenticatedRequest } from "../middlewares/authMiddleware";
 
 // access and refresh token generating method
 const generateAccessAndRefreshToken = async (userId: string) => {
@@ -122,6 +123,29 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // User logout ----------------------------------------------
-const logoutUser = asyncHandler(async (req: Request, res: Response) => {});
+const logoutUser = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $unset: {
+          refreshToken: 1,
+        },
+      },
+      { new: true }
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponse(200, {}, "User Logout Successful"));
+  }
+);
 
 export { registerUser, loginUser, logoutUser };
