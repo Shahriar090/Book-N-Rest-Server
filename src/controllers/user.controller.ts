@@ -5,6 +5,7 @@ import ApiResponse from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
 import jwt from "jsonwebtoken";
+import { uploadOnCloudinary } from "../utils/cloudinary";
 
 // access and refresh token generating method
 const generateAccessAndRefreshToken = async (userId: string) => {
@@ -48,6 +49,14 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(409, "This User Already Exist");
   }
 
+  // file handling
+  const avatarLocalPath = req.file;
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar Image Is Required");
+  }
+
+  const cloudinaryResponse = await uploadOnCloudinary(avatarLocalPath.path);
+
   //   creating new user
 
   const user = await User.create({
@@ -55,6 +64,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     lastName,
     email,
     password,
+    avatarImage: cloudinaryResponse,
   });
 
   //   removing password and refresh token from newly created user's information

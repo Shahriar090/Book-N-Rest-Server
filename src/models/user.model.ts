@@ -34,6 +34,10 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password Is Required"],
     },
+    avatarImage: {
+      type: String,
+      required: true,
+    },
     isAdmin: {
       type: Boolean,
       default: false,
