@@ -8,6 +8,7 @@ export type UserType = {
   password: string;
   firstName: string;
   lastName: string;
+  isAdmin: boolean;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
   generateRefreshToken(): string;
@@ -32,6 +33,10 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password Is Required"],
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
     refreshToken: {
       type: String,
