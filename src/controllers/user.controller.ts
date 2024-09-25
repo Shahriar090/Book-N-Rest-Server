@@ -51,11 +51,12 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
   // file handling
   const avatarLocalPath = req.file;
+  console.log(avatarLocalPath!.path, "From Register");
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar Image Is Required");
   }
-
-  const cloudinaryResponse = await uploadOnCloudinary(avatarLocalPath.path);
+  const cloudinaryResponse = await uploadOnCloudinary(avatarLocalPath?.path);
+  console.log("Cloudinary res from register controller", cloudinaryResponse);
 
   //   creating new user
 
