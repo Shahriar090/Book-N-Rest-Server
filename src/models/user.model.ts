@@ -81,6 +81,7 @@ userSchema.methods.generateAccessToken = function () {
       firstName: this.firstName,
       lastName: this.lastName,
       isAdmin: this.isAdmin,
+      avatarImage: this.avatarImage,
     },
     process.env.ACCESS_TOKEN_SECRET as string,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }

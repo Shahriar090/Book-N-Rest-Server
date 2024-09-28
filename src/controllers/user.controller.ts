@@ -114,9 +114,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     user._id
   );
   // removing password and refresh token before sending response
-  const loggedInUser = await User.findById(user._id).select(
-    "-refreshToken -password"
-  );
+  await User.findById(user._id).select("-refreshToken -password");
 
   const options = { httpOnly: true, secure: true };
 
@@ -128,7 +126,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse(
         200,
-        { user: loggedInUser, accessToken, refreshToken },
+        { accessToken, refreshToken },
         "User Login Successful"
       )
     );
