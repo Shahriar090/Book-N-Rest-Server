@@ -14,7 +14,10 @@ export const verifyJwt = asyncHandler(
       const token = req.cookies?.accessToken;
 
       if (!token) {
-        throw new ApiError(401, "Unauthorized Request");
+        res
+          .status(401)
+          .json(new ApiError(401, "Unauthorized Request.No Token Found"));
+        return;
       }
 
       const decodedToken = jwt.verify(
@@ -23,7 +26,8 @@ export const verifyJwt = asyncHandler(
       );
 
       if (typeof decodedToken === "string") {
-        throw new ApiError(401, "Invalid Access Token");
+        res.status(401).json(new ApiError(401, "Invalid Access Token"));
+        return;
       }
 
       const user = await User.findById(decodedToken?._id).select(
@@ -31,13 +35,17 @@ export const verifyJwt = asyncHandler(
       );
 
       if (!user) {
-        throw new ApiError(401, "Invalid Access Token");
+        res
+          .status(401)
+          .json(new ApiError(401, "Invalid Access Token, No User Found"));
+        return;
       }
 
-      req.user = user;
+      req.user = user!;
       next();
     } catch (error) {
-      throw new ApiError(401, "Invalid Access Token");
+      res.status(401).json(new ApiError(401, "Invalid Access Token"));
+      return;
     }
   }
 );
