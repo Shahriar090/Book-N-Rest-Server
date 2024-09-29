@@ -164,7 +164,10 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
 
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized Request - Missing Refresh Token");
+    res
+      .status(401)
+      .json(new ApiError(401, "Unauthorized Request - Missing Refresh Token"));
+    return;
   }
 
   try {
@@ -174,19 +177,26 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (typeof decodedToken === "string") {
-      throw new ApiError(401, "Invalid Refresh Token");
+      res.status(401).json(new ApiError(401, "Invalid Refresh Token"));
+      return;
     }
 
     const user = await User.findById(decodedToken?._id);
 
     if (!user) {
-      throw new ApiError(401, "Invalid Refresh Token");
+      res
+        .status(401)
+        .json(new ApiError(401, "Invalid Refresh Token. No User Found"));
+      return;
     }
 
     // Verify the refresh token stored in the database matches the incoming one
 
     if (incomingRefreshToken !== user.refreshToken) {
-      throw new ApiError(401, "Refresh Token Is Expired Or Used");
+      res
+        .status(401)
+        .json(new ApiError(401, "Refresh Token Is Expired Or Used"));
+      return;
     }
 
     const options = {
@@ -211,7 +221,8 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
         )
       );
   } catch (error) {
-    throw new ApiError(401, "Invalid Refresh Token");
+    res.status(401).json(new ApiError(401, "Invalid Refresh Token"));
+    return;
   }
 });
 
