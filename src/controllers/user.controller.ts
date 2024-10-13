@@ -274,7 +274,7 @@ const updateUser = asyncHandler(
       userId,
       { $set: updates },
       { new: true, runValidators: true }
-    ).select("-password -refreshtoken");
+    ).select("-password -refreshToken");
 
     res
       .status(200)
