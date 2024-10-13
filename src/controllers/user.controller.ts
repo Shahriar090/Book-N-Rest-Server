@@ -51,12 +51,10 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
   // file handling
   const avatarLocalPath = req.file;
-  console.log(avatarLocalPath!.path, "From Register");
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar Image Is Required");
   }
   const cloudinaryResponse = await uploadOnCloudinary(avatarLocalPath?.path);
-  console.log("Cloudinary res from register controller", cloudinaryResponse);
 
   //   creating new user
 
@@ -193,9 +191,10 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     // Verify the refresh token stored in the database matches the incoming one
 
     if (incomingRefreshToken !== user.refreshToken) {
+      res.clearCookie("refreshToken", { path: "/" });
       res
         .status(401)
-        .json(new ApiError(401, "Refresh Token Is Expired Or Used"));
+        .json(new ApiError(401, "Refresh Token Is Expired or Used"));
       return;
     }
 
@@ -221,9 +220,72 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
         )
       );
   } catch (error) {
-    res.status(401).json(new ApiError(401, "Invalid Refresh Token"));
+    res.status(401).json(new ApiError(401, "Refresh Token Is Expired Or Used"));
     return;
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+// update user info
+
+const updateUser = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { userId } = req.params;
+    const { firstName, lastName, email, password } = req.body;
+
+    if (
+      ![firstName, lastName, email, password, req.file].some((field) => field)
+    ) {
+      throw new ApiError(400, "Please Provide At Least One Field To Update");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "No User Found");
+    }
+
+    if (email) {
+      const existedUser = await User.findOne({ email });
+      if (existedUser && existedUser._id.toString() !== user._id.toString()) {
+        throw new ApiError(409, "Email Is Already In Use");
+      }
+    }
+
+    const updates: any = {};
+
+    if (firstName) updates.firstName = firstName;
+    if (lastName) updates.lastName = lastName;
+    if (email) updates.email = email;
+
+    if (password && password.trim() !== "") {
+      updates.password = password;
+    }
+
+    if (req.file) {
+      try {
+        const avatarLocalPath = req.file?.path;
+        const cloudinaryResponse = await uploadOnCloudinary(avatarLocalPath);
+        updates.avatarImage = cloudinaryResponse;
+      } catch (error) {
+        throw new ApiError(500, "Failed To Update Avatar Image");
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password -refreshtoken");
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          updatedUser,
+          "User Information Updated Successfully"
+        )
+      );
+  }
+);
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken, updateUser };
